@@ -16,6 +16,14 @@ class TaskCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  Color _dueDateColor(DateTime dueDate) {
+    final now = DateTime.now();
+    final diff = dueDate.difference(now).inDays;
+    if (diff < 0) return Colors.red;
+    if (diff <= 2) return Colors.orange;
+    return Colors.blue;
+  }
+
   Color _priorityColor(String priority) {
     switch (priority) {
       case 'alta': return Colors.red;
@@ -97,7 +105,10 @@ class TaskCard extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 8),
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -110,13 +121,34 @@ class TaskCard extends StatelessWidget {
                             style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w500),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Icon(Icons.calendar_today_outlined, size: 12, color: scheme.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Text(
-                          DateFormat('dd/MM/yyyy').format(task.createdAt),
-                          style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
-                        ),
+                        if (task.dueDate != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _dueDateColor(task.dueDate!).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _dueDateColor(task.dueDate!).withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.event_outlined,
+                                    size: 11, color: _dueDateColor(task.dueDate!)),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Entrega: ${DateFormat('dd/MM/yyyy').format(task.dueDate!)}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: _dueDateColor(task.dueDate!),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],

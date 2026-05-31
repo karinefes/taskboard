@@ -6,6 +6,7 @@ class Task {
   final String priority;
   final bool done;
   final DateTime createdAt;
+  final DateTime? dueDate;
 
   Task({
     required this.id,
@@ -15,6 +16,7 @@ class Task {
     required this.priority,
     required this.done,
     required this.createdAt,
+    this.dueDate,
   });
 
   factory Task.fromMap(Map<String, dynamic> map) {
@@ -26,6 +28,7 @@ class Task {
       priority: map['priority'] ?? 'media',
       done: map['done'] ?? false,
       createdAt: DateTime.parse(map['created_at']),
+      dueDate: map['due_date'] != null ? DateTime.parse(map['due_date']) : null,
     );
   }
 
@@ -35,6 +38,7 @@ class Task {
       'description': description,
       'priority': priority,
       'done': done,
+      'due_date': dueDate?.toIso8601String(),
     };
   }
 
@@ -43,6 +47,7 @@ class Task {
     String? description,
     String? priority,
     bool? done,
+    DateTime? dueDate,
   }) {
     return Task(
       id: id,
@@ -52,6 +57,7 @@ class Task {
       priority: priority ?? this.priority,
       done: done ?? this.done,
       createdAt: createdAt,
+      dueDate: dueDate ?? this.dueDate,
     );
   }
 }

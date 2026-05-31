@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/task.dart';
 import '../services/database_service.dart';
 
@@ -17,6 +18,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   String _priority = 'media';
+  DateTime? _dueDate;
   bool _loading = false;
 
   bool get _isEditing => widget.task != null;
@@ -28,6 +30,7 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
       _titleController.text = widget.task!.title;
       _descController.text = widget.task!.description ?? '';
       _priority = widget.task!.priority;
+      _dueDate = widget.task!.dueDate;
     }
   }
 
@@ -36,6 +39,22 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     _titleController.dispose();
     _descController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _dueDate ?? now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 5),
+      helpText: 'Selecione a data de entrega',
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+    );
+    if (picked != null) {
+      setState(() => _dueDate = picked);
+    }
   }
 
   Future<void> _save() async {
@@ -48,12 +67,14 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
           title: _titleController.text.trim(),
           description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
           priority: _priority,
+          dueDate: _dueDate,
         );
       } else {
         await widget.dbService.createTask(
           title: _titleController.text.trim(),
           description: _descController.text.trim().isEmpty ? null : _descController.text.trim(),
           priority: _priority,
+          dueDate: _dueDate,
         );
       }
       if (mounted) Navigator.of(context).pop(true);
@@ -70,6 +91,8 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return AlertDialog(
       title: Text(_isEditing ? 'Editar tarefa' : 'Nova tarefa'),
       content: SizedBox(
@@ -112,6 +135,43 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                   DropdownMenuItem(value: 'alta', child: Text('🔴 Alta')),
                 ],
                 onChanged: (v) => setState(() => _priority = v!),
+              ),
+              const SizedBox(height: 16),
+              InkWell(
+                onTap: _pickDate,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: scheme.outline),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_month_outlined,
+                          color: _dueDate != null ? scheme.primary : scheme.onSurfaceVariant),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _dueDate != null
+                              ? 'Entrega: ${DateFormat('dd/MM/yyyy').format(_dueDate!)}'
+                              : 'Data de entrega (opcional)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: _dueDate != null
+                                ? scheme.onSurface
+                                : scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      if (_dueDate != null)
+                        GestureDetector(
+                          onTap: () => setState(() => _dueDate = null),
+                          child: Icon(Icons.close, size: 18, color: scheme.onSurfaceVariant),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

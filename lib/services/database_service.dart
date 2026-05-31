@@ -17,6 +17,7 @@ class DatabaseService {
     required String title,
     String? description,
     required String priority,
+    DateTime? dueDate,
   }) async {
     final userId = _supabase.auth.currentUser!.id;
     await _supabase.from('tasks').insert({
@@ -25,6 +26,7 @@ class DatabaseService {
       'description': description,
       'priority': priority,
       'done': false,
+      'due_date': dueDate?.toIso8601String(),
     });
   }
 
@@ -33,11 +35,13 @@ class DatabaseService {
     required String title,
     String? description,
     required String priority,
+    DateTime? dueDate,
   }) async {
     await _supabase.from('tasks').update({
       'title': title,
       'description': description,
       'priority': priority,
+      'due_date': dueDate?.toIso8601String(),
     }).eq('id', id);
   }
 
